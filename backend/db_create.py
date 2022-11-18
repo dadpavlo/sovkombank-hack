@@ -5,7 +5,7 @@ def create_roles(db_name : str):
         cursor = db.cursor()
         query = """
                     CREATE TABLE IF NOT EXISTS roles(
-                    id	INTEGER,
+                    pk role_id	INTEGER PRIMARY KEY DESC,
                     name_role	TEXT
                     );"""
         print(query)
@@ -17,12 +17,11 @@ def create_users(db_name : str):
         cursor = db.cursor()
         query = """
                     CREATE TABLE IF NOT EXISTS users(
-                    ID	INTEGER,
+                    pk user_id	INTEGER PRIMARY KEY DESC,
                     login	TEXT ,
                     password	TEXT,
-                    status	INTEGER,
                     role_id	INTEGER,
-                    FOREIGN KEY(role_id) REFERENCES roles(id)
+                    FOREIGN KEY(role_id) REFERENCES roles(role_id)
                     );"""
         print(query)
         cursor.execute(query)
