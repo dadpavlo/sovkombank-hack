@@ -5,7 +5,7 @@ def create_roles(db_name : str):
         cursor = db.cursor()
         query = """
                     CREATE TABLE IF NOT EXISTS roles(
-                    pk role_id	INTEGER PRIMARY KEY DESC,
+                    role_id	INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     name_role	TEXT
                     );"""
         print(query)
@@ -17,7 +17,7 @@ def create_users(db_name : str):
         cursor = db.cursor()
         query = """
                     CREATE TABLE IF NOT EXISTS users(
-                    pk user_id	INTEGER PRIMARY KEY DESC,
+                    user_id	INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     login	TEXT ,
                     password	TEXT,
                     role_id	INTEGER,
