@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from flask import Flask
+from flask import Flask, make_response, jsonify
 from flask import request
 import db_api
 
@@ -21,10 +21,9 @@ def signup_post():
     user = db_api.get_user_by_login(login)
     if user is None:
         db_api.create_user(login, password, 0)
-    else
-
-
-    return 'created user'
+        return 'created user'
+    else:
+        return 'user is already exist'
 
 @app.route('/login')
 def sign_up():
@@ -33,9 +32,25 @@ def sign_up():
     user = db_api.get_user_by_login(login)
     if user is not None:
         if user.password == password:
-            rand_token = uuid4()
-
-    return 'created user'
+            response = make_response(
+                jsonify(
+                    {
+                        'msg': 'login',
+                    }
+                ), 200
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+    else:
+        response = make_response(
+            jsonify(
+                {
+                    'msg': 'Credentials not valid',
+                }
+            ), 401
+        )
+        response.headers["Content-Type"] = "application/json"
+        return response
 
 ## TODO удалять может только админ
 @app.route('/deleteUser')
