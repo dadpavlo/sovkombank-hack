@@ -1,6 +1,13 @@
 # Sovkombank Hack
 
-
+## Настройка докер-контейнера SQLite 3
+```
+docker pull keinos/sqlite3:latest
+git clone https://github.com/KEINOS/Dockerfile_of_SQLite3.git
+cd Dockerfile_of_SQLite3
+docker build -t keinos/sqlite3:latest .
+docker run --rm -it -v "$(pwd):/workspace" -w /workspace keinos/sqlite3
+```
 
 ## Getting started
 
