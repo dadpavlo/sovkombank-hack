@@ -1,66 +1,46 @@
 import hashlib
 import os
-from uuid import uuid4
-
-from flask import Flask, make_response, jsonify
-from flask import request
-from playhouse.shortcuts import model_to_dict
+import datetime
+import jwt
 
 import db_api
-
 import base64
 from functools import wraps
 from typing import Optional
-
-from flask import request, jsonify, make_response
-
-# import services as notes_service
-# from app import app
+from flask import request, jsonify, make_response, Flask
 from db_api import User
+
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = 'Th1s1ss3cr3t'
 app.config['CORS_HEADERS'] = 'Content-Type'
 salt = os.urandom(32)
 
-@app.route('/')
-def index():
-    return 'Hello World'
 
+def token_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
 
+        token = None
 
-# def authenticated_only(f):
-#     @wraps(f)
-#     def wrapper(*args, **kwargs):
-#         user = identify_user()
-#
-#         scheme, credentials = request.headers.get('Authorization').split()
-#         decoded_credentials = base64.b64decode(credentials).decode()
-#         username, password = decoded_credentials.split(':')
-#
-#         is_authenticated = authenticate_user(user=user, password=password)
-#
-#     # Not authenticated users not authorized to do this action
-#         if not is_authenticated:
-#             response = make_response(
-#                 jsonify(
-#                     {
-#                         'msg': 'Credentials not valid',
-#                     }
-#                 ), 401
-#             )
-#             response.headers["Content-Type"] = "application/json"
-#             response.headers["WWW-Authenticate"] = "Basic realm=notes_api"
-#
-#             return response
-#
-#         request.user = user
-#
-#         return f(*args, **kwargs)
-#     return wrapper
+        if 'x-access-tokens' in request.headers:
+            token = request.headers['x-access-tokens']
+
+        if not token:
+            return jsonify({'message': 'a valid token is missing'})
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            current_user = User.query.filter_by(user_id=data['user_id']).first()
+        except:
+            return jsonify({'message': 'token is invalid'})
+
+        return f(current_user, *args, **kwargs)
+    return decorator
+
 
 @app.route("/notes", methods=['POST'])
 def create_note():
-
     response = make_response(
         jsonify(
             {
@@ -72,13 +52,15 @@ def create_note():
     response.headers["Content-Type"] = "application/json"
     return response
 
+
 @app.route('/signUp', methods=['POST'])
 def signup_post():
     login = request.args.get('login')
     password = request.args.get('password')
     user = list(db_api.get_user_by_login(login))
     if user.__len__() == 0:
-        db_api.create_user(login, hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000, dklen=128), 0, salt)
+        db_api.create_user(login, hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000, dklen=128), 0,
+                           salt)
         response = make_response(
             jsonify(
                 {
@@ -91,29 +73,30 @@ def signup_post():
     else:
         return 'user is already exist'
 
+
 @app.route('/login')
-def sign_up():
-    login = request.args.get('login')
-    password = request.args.get('password')
-    user = list(db_api.get_user_by_login(login))
+def login():
+    auth = request.authorization
+    if not auth or not auth.username or not auth.password:
+        return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})
+    user = list(db_api.get_user_by_login(auth.username))
     if user.__len__() != 0:
-        if user[0].password == hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), user[0].salt, 10000, dklen=128):
-            model_to_dict(user[0])
-            response = make_response(
-                jsonify(
-                    {
-                        'userId': user[0].user_id,
-                        'login': user[0].login,
-                    }
-                ), 200
-            )
+        if check_password_hash(user[0], auth.password):
+            token = jwt.encode(
+                {'user_id': user[0].user_id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
+                app.config['SECRET_KEY'])
+            response = make_response(jsonify({'token': token
+                            # 'userId': user[0].user_id,
+                            # 'login': user[0].login,
+                            }), 200
+                )
             response.headers["Content-Type"] = "application/json"
             return response
         else:
             response = make_response(
                 jsonify(
                     {
-                        'msg': 'password or login incorrect',
+                        'msg': 'login or password incorrect',
                     }
                 ), 401
             )
@@ -135,23 +118,24 @@ def sign_up():
 
 ## TODO удалять может только админ
 @app.route('/deleteUser')
+@token_required
 def delete_user():
     user_id = request.args.get('userId')
     db_api.delete_user(user_id)
     return 'user deleted'
 
+@app.route('/getAccountsForUser')
+@token_required
+def delete_user():
+    user_id = request.args.get('userId')
+    db_api.delete_user(user_id)
+    return 'user deleted'
 
 @app.route('/getUserById')
 def get_user_by_id():
     user_id = request.args.get('userId')
     user = db_api.get_user_by_id(user_id)
     return str(user.user_id)
-
-def authenticate_user(user: Optional[User], password: str) -> bool:
-    if user is None:
-        return False
-
-    return user.password == PasswordHash.hash_password(password)
 
 
 def identify_user() -> Optional[User]:
@@ -166,6 +150,11 @@ def identify_user() -> Optional[User]:
 
     return user
 
+def check_password_hash(user, auth_password):
+    if user.password == hashlib.pbkdf2_hmac('sha256', auth_password.encode('utf-8'), user.salt, 10000, dklen=128):
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8081)
+    app.run(host="0.0.0.0", port=8082)
