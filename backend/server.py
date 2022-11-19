@@ -39,7 +39,13 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorator
 
-
+@app.route('/*', methods=['OPTIONS', 'POST'])
+def OptionsHandler():
+    response = make_response({"staus": "OK"})
+    response.headers['Acess-Control-Allow-Origin'] = '*'
+    response.headers['Acess-Control-Allow-Methods'] = 'GET, PUT, POST, OPTIONS, DELETE'
+    response.headers['Acess-Control-Allow-headers'] ='Content-Type, Authorization, Content-Type, X-Requested-With'
+    return response, 200
 @app.route("/notes", methods=['POST'])
 def create_note():
     response = make_response(
