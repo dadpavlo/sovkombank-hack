@@ -18,7 +18,7 @@ class User(BaseModel):
     user_id = AutoField(primary_key=True, column_name='user_id', unique=True,
                         constraints=[peewee.SQL('AUTO_INCREMENT')])
     login = TextField(column_name='login', null=False)
-    password = TextField(column_name='password', null=False)
+    password = BlobField(column_name='password', null=False)
     role_id = ForeignKeyField(Role, backref='users')
 
     class Meta:
@@ -32,7 +32,7 @@ def get_user_by_id(id):
     return User.get(User.user_id == id)
 
 def get_user_by_login(login):
-    return User.get(User.login == login)
+    return User.select().where(User.login == login).execute()
 
 def create_user(login, password, role):
     User.create(login=login, password=password, role_id=role)
