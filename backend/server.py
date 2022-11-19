@@ -4,6 +4,8 @@ from uuid import uuid4
 
 from flask import Flask, make_response, jsonify
 from flask import request
+from playhouse.shortcuts import model_to_dict
+
 import db_api
 
 import base64
@@ -74,10 +76,18 @@ def create_note():
 def signup_post():
     login = request.args.get('login')
     password = request.args.get('password')
-    user = db_api.get_user_by_login(login).count
-    if user == 0:
-        db_api.create_user(login, hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000), 0)
-        return 'created user'
+    user = list(db_api.get_user_by_login(login))
+    if user.__len__() == 0:
+        db_api.create_user(login, hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000, dklen=128), 0, salt)
+        response = make_response(
+            jsonify(
+                {
+                    'userId': user[0].user_id,
+                    'login': user[0].login,
+                }
+            ), 200
+        )
+        return response
     else:
         return 'user is already exist'
 
@@ -85,19 +95,30 @@ def signup_post():
 def sign_up():
     login = request.args.get('login')
     password = request.args.get('password')
-    user = db_api.get_user_by_login(login)
-    if user is not None:
-        if user.password == password:
-            return 'login'
+    user = list(db_api.get_user_by_login(login))
+    if user.__len__() != 0:
+        if user[0].password == hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), user[0].salt, 10000, dklen=128):
+            model_to_dict(user[0])
+            response = make_response(
+                jsonify(
+                    {
+                        'userId': user[0].user_id,
+                        'login': user[0].login,
+                    }
+                ), 200
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
         else:
             response = make_response(
                 jsonify(
                     {
-                        'msg': 'Credentials not valid',
+                        'msg': 'password or login incorrect',
                     }
                 ), 401
             )
             response.headers["Content-Type"] = "application/json"
+            response.headers["WWW-Authenticate"] = "Basic realm=notes_api"
             return response
     else:
         response = make_response(
@@ -108,7 +129,9 @@ def sign_up():
             ), 401
         )
         response.headers["Content-Type"] = "application/json"
+        response.headers["WWW-Authenticate"] = "Basic realm=notes_api"
         return response
+
 
 ## TODO удалять может только админ
 @app.route('/deleteUser')
