@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import datetime
 import jwt
@@ -37,6 +38,7 @@ def token_required(f):
             return jsonify({'message': 'token is invalid'})
 
         return f(current_user, *args, **kwargs)
+
     return decorator
 
 
@@ -87,10 +89,10 @@ def login():
                 {'user_id': user[0].user_id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
                 app.config['SECRET_KEY'])
             response = make_response(jsonify({'token': token
-                            # 'userId': user[0].user_id,
-                            # 'login': user[0].login,
-                            }), 200
-                )
+                                              # 'userId': user[0].user_id,
+                                              # 'login': user[0].login,
+                                              }), 200
+                                     )
             response.headers["Content-Type"] = "application/json"
             return response
         else:
@@ -125,12 +127,23 @@ def delete_user(current_user):
     db_api.delete_user(user_id)
     return 'user deleted'
 
-# @app.route('/getAccountsForUser')
-# @token_required
-# def delete_user():
-#     user_id = request.args.get('userId')
-#     db_api.delete_user(user_id)
-#     return 'user deleted'
+
+@app.route('/getAccountsForUser')
+@token_required
+def get_accounts_for_user(current_user):
+    user_id = request.args.get('userId')
+    accounts = list(db_api.find_accounts_for_user(user_id))
+    response = []
+    for i in range(accounts.__len__()):
+        response.append({
+                    'accountId': accounts[i].account_id,
+                    'type': accounts[i].type,
+                    'remains': accounts[i].remains,
+                    'status': accounts[i].status,
+                })
+        json.dumps(response)
+    return response
+
 
 @app.route('/getUserById')
 def get_user_by_id():
@@ -151,11 +164,13 @@ def identify_user() -> Optional[User]:
 
     return user
 
+
 def check_password_hash(user, auth_password):
     if user.password == hashlib.pbkdf2_hmac('sha256', auth_password.encode('utf-8'), user.salt, 10000, dklen=128):
         return True
     else:
         return False
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8082)
+    app.run(host="0.0.0.0", port=8083)
