@@ -1,16 +1,17 @@
+import base64
+import datetime
 import hashlib
 import json
 import os
-import datetime
-import jwt
-import db_api
-import base64
-
 from functools import wraps
 from typing import Optional
-from flask import request, jsonify, make_response, Flask, redirect, url_for
-from db_api import User
+
+import jwt
+from flask import request, jsonify, make_response, Flask
 from flask_cors import CORS
+
+import db_api
+from db_api import User
 
 app = Flask(__name__)
 CORS(app)
@@ -65,11 +66,12 @@ def signup_post():
     if user.__len__() == 0:
         db_api.create_user(login, hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 10000, dklen=128), 0,
                            salt)
+        new_user = list(db_api.get_user_by_login(login))
         response = make_response(
             jsonify(
                 {
-                    'userId': user[0].user_id,
-                    'login': user[0].login,
+                    'userId': new_user[0].user_id,
+                    'login': new_user[0].login,
                 }
             ), 200
         )
@@ -198,4 +200,4 @@ def check_password_hash(user, auth_password):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=8085)

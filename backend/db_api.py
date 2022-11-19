@@ -64,7 +64,7 @@ def get_user_by_login(login):
 
 
 def create_user(login, password, role, salt):
-    User.create(login=login, password=password, role_id=role, salt=salt).save()
+    return User.create(login=login, password=password, role_id=role, salt=salt).save()
     print(User.login)
 
 
