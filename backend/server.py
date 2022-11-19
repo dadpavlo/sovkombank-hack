@@ -73,6 +73,7 @@ def signup_post():
                 }
             ), 200
         )
+        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
     else:
         return 'user is already exist'
