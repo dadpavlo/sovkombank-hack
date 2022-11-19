@@ -3,16 +3,17 @@ import json
 import os
 import datetime
 import jwt
-
 import db_api
 import base64
+
 from functools import wraps
 from typing import Optional
 from flask import request, jsonify, make_response, Flask, redirect, url_for
 from db_api import User
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 app.config['SECRET_KEY'] = 'Th1s1ss3cr3t'
 app.config['CORS_HEADERS'] = 'Content-Type'
 salt = os.urandom(32)
