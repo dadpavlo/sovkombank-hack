@@ -19,7 +19,8 @@ def create_users(db_name : str):
                     CREATE TABLE IF NOT EXISTS users(
                     user_id	INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     login	TEXT ,
-                    password	TEXT,
+                    password	BLOB,
+                    salt BLOB,
                     role_id	INTEGER,
                     FOREIGN KEY(role_id) REFERENCES roles(role_id)
                     );"""
