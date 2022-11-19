@@ -28,7 +28,7 @@ class Account(BaseModel):
     account_id = IntegerField(primary_key=True, column_name='account_id', unique=True,
                         constraints=[peewee.SQL('AUTO_INCREMENT')])
     type = IntegerField(column_name='type')
-    remains = IntegerField(column_name='remains')
+    remains = FloatField(column_name='remains')
     status = IntegerField(column_name='status')
     user_id = ForeignKeyField(User, backref="accounts")
     class Meta:
@@ -38,7 +38,7 @@ cursor = conn.cursor()
 class Operation(BaseModel):
     operation_id = IntegerField(primary_key=True, column_name='operation_id', unique=True,
                         constraints=[peewee.SQL('AUTO_INCREMENT')])
-    amount = IntegerField(column_name='amount')
+    amount = FloatField(column_name='amount')
     account_id = ForeignKeyField(Account, backref="operations")
     time = IntegerField(column_name='time') # unix timestamp in secs
     type = IntegerField(column_name='type') # 0-списание, 1- пополнение
@@ -70,11 +70,13 @@ def delelte_account(id):
     Account.delete().where(Account.user_id==id).execute()
 
 def add_cash(id, amount, time):   
-    Account.update({Account.remains : amount}).where(Account.account_id ==id).execute()
+    q=Account.update({Account.remains : Account.remains+amount}).where(Account.account_id ==id)
+    q.execute()
     create_operation(amount = amount, account_id=id, time=time, type= 1) 
 
 def sub_cash(id, amount, time):
-    Account.update({Account.remains : amount}).where(Account.account_id ==id).execute()
+    q=Account.update({Account.remains : Account.remains-amount}).where(Account.account_id ==id)
+    q.execute()
     create_operation(amount = amount, account_id=id, time=time, type= 0) 
 
 #opertions actions
@@ -85,10 +87,10 @@ def delete_operation( id):
     Operation.delete().where(operation_id = id).execute()
 
 
-create_user('Wildelm1914', 'qwerty', 0, 35)
-create_account(0,10000.0,1,0)
-print(add_cash(0,10001.0,1620000000))
-print(sub_cash(0,100,1620000000))
+# create_user('Wildelm1914', 'qwerty', 0, 35)
+#create_account(0, 10000.0, 1, 5)
+add_cash(1,10001.0,1620000000)
+# print(sub_cash(0,100,1620000000))
 
 
 #print(list(get_user_by_login('Wildelm1914')))

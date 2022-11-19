@@ -7,7 +7,7 @@ import db_api
 import base64
 from functools import wraps
 from typing import Optional
-from flask import request, jsonify, make_response, Flask
+from flask import request, jsonify, make_response, Flask, redirect, url_for
 from db_api import User
 
 app = Flask(__name__)
@@ -30,9 +30,10 @@ def token_required(f):
             return jsonify({'message': 'a valid token is missing'})
 
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = User.query.filter_by(user_id=data['user_id']).first()
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
+            current_user = db_api.get_user_by_id(data['user_id']).user_id
         except:
+            # returnredirect(url_for('dashboard')
             return jsonify({'message': 'token is invalid'})
 
         return f(current_user, *args, **kwargs)
@@ -119,17 +120,17 @@ def login():
 ## TODO удалять может только админ
 @app.route('/deleteUser')
 @token_required
-def delete_user():
+def delete_user(current_user):
     user_id = request.args.get('userId')
     db_api.delete_user(user_id)
     return 'user deleted'
 
-@app.route('/getAccountsForUser')
-@token_required
-def delete_user():
-    user_id = request.args.get('userId')
-    db_api.delete_user(user_id)
-    return 'user deleted'
+# @app.route('/getAccountsForUser')
+# @token_required
+# def delete_user():
+#     user_id = request.args.get('userId')
+#     db_api.delete_user(user_id)
+#     return 'user deleted'
 
 @app.route('/getUserById')
 def get_user_by_id():
