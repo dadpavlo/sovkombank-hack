@@ -6,21 +6,21 @@ import { Link } from "react-router-dom";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,24}$/;
-const REGISTER_URL = '/signUp';
+const REGISTER_URL = '/register';
 
 const Register = () => {
   const userRef = useRef();
   const errRef = useRef();
 
-  const [login, setLogin] = useState('');
+  const [user, setUser] = useState('');
   const [validName, setValidName] = useState(false);
   const [userFocus, setUserFocus] = useState(false);
 
-  const [password, setPassword] = useState('');
-  const [validPassword, setValidPassword] = useState(false);
-  const [passwordFocus, setPasswordFocus] = useState(false);
+  const [pwd, setPwd] = useState('');
+  const [validPwd, setValidPwd] = useState(false);
+  const [pwdFocus, setPwdFocus] = useState(false);
 
-  const [matchPassword, setMatchPassword] = useState('');
+  const [matchPwd, setMatchPwd] = useState('');
   const [validMatch, setValidMatch] = useState(false);
   const [matchFocus, setMatchFocus] = useState(false);
 
@@ -32,30 +32,30 @@ const Register = () => {
   }, [])
 
   useEffect(() => {
-    setValidName(USER_REGEX.test(login));
-  }, [login])
+    setValidName(USER_REGEX.test(user));
+  }, [user])
 
   useEffect(() => {
-    setValidPassword(PWD_REGEX.test(password));
-    setValidMatch(password === matchPassword);
-  }, [password, matchPassword])
+    setValidPwd(PWD_REGEX.test(pwd));
+    setValidMatch(pwd === matchPwd);
+  }, [pwd, matchPwd])
 
   useEffect(() => {
     setErrMsg('');
-  }, [login, password, matchPassword])
+  }, [user, pwd, matchPwd])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const v1 = USER_REGEX.test(login);
-    const v2 = PWD_REGEX.test(password);
+    const v1 = USER_REGEX.test(user);
+    const v2 = PWD_REGEX.test(pwd);
     if (!v1 || !v2) {
       setErrMsg("Invalid Entry");
       return;
     }
     try {
       const response = await axios.post(REGISTER_URL,
-        JSON.stringify({ login, password }),
+        JSON.stringify({ user, pwd }),
         {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true
@@ -66,9 +66,9 @@ const Register = () => {
 
       setSuccess(true);
 
-      setLogin('');
-      setPassword('');
-      setMatchPassword('');
+      setUser('');
+      setPwd('');
+      setMatchPwd('');
     } catch (err) {
       if (!err?.response) {
         setErrMsg('No Server Response');
@@ -98,22 +98,22 @@ const Register = () => {
             <label htmlFor="username">
               Имя пользователя:
               <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />
-              <FontAwesomeIcon icon={faTimes} className={validName || !login ? "hide" : "invalid"} />
+              <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"} />
             </label>
             <input
               type="text"
               id="username"
               ref={userRef}
               autoComplete="off"
-              onChange={(e) => setLogin(e.target.value)}
-              value={login}
+              onChange={(e) => setUser(e.target.value)}
+              value={user}
               required
               aria-invalid={validName ? "false" : "true"}
               aria-describedby="uidnote"
               onFocus={() => setUserFocus(true)}
               onBlur={() => setUserFocus(false)}
             />
-            <p id="uidnote" className={userFocus && login && !validName ? "instructions" : "offscreen"}>
+            <p id="uidnote" className={userFocus && user && !validName ? "instructions" : "offscreen"}>
               <FontAwesomeIcon icon={faInfoCircle} />
               от 4 до 24 символов.<br />
               Допускаются буквы, цифры, подчеркивания, дефисы.
@@ -122,21 +122,21 @@ const Register = () => {
 
             <label htmlFor="password">
               Пароль:
-              <FontAwesomeIcon icon={faCheck} className={validPassword ? "valid" : "hide"} />
-              <FontAwesomeIcon icon={faTimes} className={validPassword || !password ? "hide" : "invalid"} />
+              <FontAwesomeIcon icon={faCheck} className={validPwd ? "valid" : "hide"} />
+              <FontAwesomeIcon icon={faTimes} className={validPwd || !pwd ? "hide" : "invalid"} />
             </label>
             <input
               type="password"
               id="password"
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
+              onChange={(e) => setPwd(e.target.value)}
+              value={pwd}
               required
-              aria-invalid={validPassword ? "false" : "true"}
+              aria-invalid={validPwd ? "false" : "true"}
               aria-describedby="pwdnote"
-              onFocus={() => setPasswordFocus(true)}
-              onBlur={() => setPasswordFocus(false)}
+              onFocus={() => setPwdFocus(true)}
+              onBlur={() => setPwdFocus(false)}
             />
-            <p id="pwdnote" className={passwordFocus && !validPassword ? "instructions" : "offscreen"}>
+            <p id="pwdnote" className={pwdFocus && !validPwd ? "instructions" : "offscreen"}>
               <FontAwesomeIcon icon={faInfoCircle} />
               от 8 до 24 символов.<br />
               Должны включать прописные и строчные буквы, цифру.
@@ -145,14 +145,14 @@ const Register = () => {
 
             <label htmlFor="confirm_pwd">
               Повторите пароль:
-              <FontAwesomeIcon icon={faCheck} className={validMatch && matchPassword ? "valid" : "hide"} />
-              <FontAwesomeIcon icon={faTimes} className={validMatch || !matchPassword ? "hide" : "invalid"} />
+              <FontAwesomeIcon icon={faCheck} className={validMatch && matchPwd ? "valid" : "hide"} />
+              <FontAwesomeIcon icon={faTimes} className={validMatch || !matchPwd ? "hide" : "invalid"} />
             </label>
             <input
               type="password"
               id="confirm_pwd"
-              onChange={(e) => setMatchPassword(e.target.value)}
-              value={matchPassword}
+              onChange={(e) => setMatchPwd(e.target.value)}
+              value={matchPwd}
               required
               aria-invalid={validMatch ? "false" : "true"}
               aria-describedby="confirmnote"
@@ -164,7 +164,7 @@ const Register = () => {
               Должен совпадать с первым полем ввода пароля.
             </p>
 
-            <button disabled={!validName || !validPassword || !validMatch ? true : false}>Зарегистрироваться</button>
+            <button disabled={!validName || !validPwd || !validMatch ? true : false}>Зарегистрироваться</button>
           </form>
           <p>
             Уже зарегистрированы?<br />

@@ -1,11 +1,11 @@
 from uuid import uuid4
-from flask_cors import CORS, cross_origin
+
 from flask import Flask, make_response, jsonify
 from flask import request
 import db_api
 
 app = Flask(__name__)
-cors = CORS(app)
+
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
@@ -24,7 +24,6 @@ def signup_post():
         return 'created user'
     else:
         return 'user is already exist'
-
 
 @app.route('/login')
 def sign_up():
@@ -53,9 +52,7 @@ def sign_up():
         response.headers["Content-Type"] = "application/json"
         return response
 
-# TODO удалять может только админ
-
-
+## TODO удалять может только админ
 @app.route('/deleteUser')
 def delete_user():
     user_id = request.args.get('userId')
