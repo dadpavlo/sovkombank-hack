@@ -87,6 +87,10 @@ def find_accounts_for_user(user_id):
     return Account.select().where(Account.user_id == user_id).execute()
 
 
+def find_accounts_by_id(account_id):
+    return Account.select().where(Account.account_id == account_id).execute()
+
+
 def delelte_account(id):
     Account.delete().where(Account.user_id == id).execute()
 

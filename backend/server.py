@@ -144,6 +144,29 @@ def get_accounts_for_user(current_user):
         json.dumps(response)
     return response
 
+@app.route('/getAccountRemainsById')
+@token_required
+def get_account_remains_by_id(current_user):
+    account_id = request.args.get('accountId')
+    accounts = list(db_api.find_accounts_by_id(account_id))
+    if accounts.__len__() != 0:
+        response = make_response(
+            jsonify(
+                {
+                    'remains': accounts[0].remains,
+                }
+            ), 200
+        )
+        return response
+    else:
+        response = make_response(
+            jsonify(
+                {
+                    'msg': 'Account with selected id not found',
+                }
+            ), 200
+        )
+    return response
 
 @app.route('/getUserById')
 def get_user_by_id():
@@ -173,4 +196,4 @@ def check_password_hash(user, auth_password):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8083)
+    app.run(host="0.0.0.0", port=8080)
