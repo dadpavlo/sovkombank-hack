@@ -1,12 +1,12 @@
-import { useRef, useState, useEffect } from "react";
-import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {useEffect, useRef, useState} from "react";
+import {faCheck, faInfoCircle, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import axios from '../api/axios';
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,24}$/;
-const REGISTER_URL = '/register';
+const REGISTER_URL = '/signUp';
 
 const Register = () => {
   const userRef = useRef();
@@ -54,12 +54,11 @@ const Register = () => {
       return;
     }
     try {
-      const response = await axios.post(REGISTER_URL,
-        JSON.stringify({ user, pwd }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true
-        }
+      const response = await axios.post(REGISTER_URL + '?login=' + user + '&password=' + pwd,
+          {
+            headers: {'Content-Type': 'application/json'},
+            withCredentials: true
+          }
       );
 
       console.log(JSON.stringify(response?.data));

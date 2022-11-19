@@ -43,21 +43,6 @@ def token_required(f):
 
     return decorator
 
-
-@app.route("/notes", methods=['POST'])
-def create_note():
-    response = make_response(
-        jsonify(
-            {
-                'title': 'note.title',
-                'body': 'note.body',
-            }
-        ), 201
-    )
-    response.headers["Content-Type"] = "application/json"
-    return response
-
-
 @app.route('/signUp', methods=['POST'])
 def signup_post():
     login = request.args.get('login')
@@ -81,7 +66,7 @@ def signup_post():
         return 'user is already exist'
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET'])
 def login():
     auth = request.authorization
     if not auth or not auth.username or not auth.password:

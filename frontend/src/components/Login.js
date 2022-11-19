@@ -1,12 +1,14 @@
-import { useRef, useState, useEffect } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import useAuth from '../hooks/useAuth';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
+import btoa from 'btoa'
 
 import axios from '../api/axios';
-const LOGIN_URL = '/auth';
+
+const LOGIN_URL = '/login';
 
 const Login = () => {
-  const { setAuth } = useAuth();
+  const {setAuth} = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,14 +31,15 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+//Сервер ожидает заголовок Authorization с закодированным логином и паролем, возможно надо использовать fetch
     try {
-      const response = await axios.post(LOGIN_URL,
-        JSON.stringify({ user, pwd }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true
-        }
+      const response = await axios.get(LOGIN_URL,
+          {
+            headers: new Headers({
+              'Authorization': 'Basic ' + btoa(user + ':' + pwd),
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }),
+          }
       );
       console.log(JSON.stringify(response?.data));
 
